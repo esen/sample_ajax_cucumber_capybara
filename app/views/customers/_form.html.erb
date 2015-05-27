@@ -1,37 +1,31 @@
-<%= form_for(@customer) do |f| %>
-  <% if @customer.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@customer.errors.count, "error") %> prohibited this customer from being saved:</h2>
+<div id="customer_form">
+  <form>
+     <fieldset>
+          <legend>A New Customer</legend>
 
-      <ul>
-      <% @customer.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
+          <label for="first_name">First Name</label>
+          <br/>
+          <input id="first_name" type="first_name" placeholder="First Name" size="35" >
+          <br/>
 
-  <div class="field">
-    <%= f.label :first_name %><br>
-    <%= f.text_field :first_name %>
-  </div>
-  <div class="field">
-    <%= f.label :last_name %><br>
-    <%= f.text_field :last_name %>
-  </div>
-  <div class="field">
-    <%= f.label :email %><br>
-    <%= f.text_field :email %>
-  </div>
-  <div class="field">
-    <%= f.label :phone %><br>
-    <%= f.text_field :phone %>
-  </div>
-  <div class="field">
-    <%= f.label :birth_date %><br>
-    <%= f.datetime_select :birth_date %>
-  </div>
-  <div class="actions">
-    <%= f.submit %>
-  </div>
-<% end %>
+          <label for="last_name">Last Name</label>
+          <br/>
+          <input id="last_name" type="last_name" placeholder="Last Name" size="35">
+          <br/>
+
+          <label for="email">Email</label>
+          <br/>
+          <input id="email" type="email" placeholder="Email" size="35">
+          <br/>
+
+          <label for="phone">Phone</label>
+          <br/>
+          <input id="phone" type="phone" placeholder="Phone" size="35">
+          <br/>
+
+          <label for="birthdate">Birth Date</label>
+          <br/>
+          <input id="birthdate" type="birthdate" placeholder="Birth Date" size="35">
+      </fieldset>
+  </form>
+</div>
