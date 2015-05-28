@@ -10,17 +10,19 @@
       <th>Email</th>
       <th>Phone</th>
       <th>Birth date</th>
+      <th></th>
     </tr>
   </thead>
 
   <tbody>
     <% @customers.each do |customer| %>
-      <tr customer-id="<%= customer.id %>">
+      <tr>
         <td><%= customer.first_name %></td>
         <td><%= customer.last_name %></td>
         <td><%= customer.email %></td>
         <td><%= customer.phone %></td>
         <td><%= customer.birth_date.strftime("%Y-%m-%d") if customer.birth_date %></td>
+        <td><button class="pure-button editer" customer-id="<%= customer.id %>">Edit</button></td>
       </tr>
     <% end %>
   </tbody>

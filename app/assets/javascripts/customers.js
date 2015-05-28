@@ -2,6 +2,9 @@ $(function() {
     var dialog, form,
 
     emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+    customer_new = true,
+    editting_id = null,
+    form_title = $("#form_title"),
     first_name = $( "#first_name" ),
     last_name = $( "#last_name" ),
     phone = $( "#phone" ),
@@ -40,23 +43,89 @@ $(function() {
       }
     }
 
+    function updateUser() {
+        $.ajax({
+          url: "/customers/" + editting_id,
+          type: "POST",
+          method: "PUT",
+          complete: userUpdated,
+          dataType: "json",
+          contentType: "application/json",
+          data: JSON.stringify({
+            first_name: first_name.val(),
+            last_name: last_name.val(),
+            email: email.val(),
+            phone: phone.val(),
+            birth_date: $.datepicker.formatDate('yy-mm-dd', new Date(birthdate.val()))
+          })
+        });      
+    }
+
+    function showEditDialog(event) {
+      var customer = $(this).parent().parent().children();
+      customer_new = false;
+      editting_id = $(this).attr("customer-id")
+      form_title.html("Edit Customer")
+      dialog.dialog( "open" );
+
+      first_name.val(customer.eq(0).html());
+      last_name.val(customer.eq(1).html());
+      email.val(customer.eq(2).html());
+      phone.val(customer.eq(3).html());
+      birthdate.val($.datepicker.formatDate('mm/dd/yy', new Date(customer.eq(4).html())));
+    }
+
+    function userUpdated(xhr, status) {
+      var customer = xhr.responseJSON;
+      if (status == "success") {
+        var editted_row = $("#customers button[customer-id='" + customer.id + "']").parent().parent().children( )
+        editted_row.eq(0).html(customer.first_name)
+        editted_row.eq(1).html(customer.last_name)
+        editted_row.eq(2).html(customer.email)
+        editted_row.eq(3).html(customer.phone)
+        editted_row.eq(4).html($.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date)))
+      }
+    }
+
+
+    function addUser() {
+        $.ajax({
+          url: "/customers",
+          type: "POST",
+          method: "POST",
+          complete: userAdded,
+          dataType: "json",
+          contentType: "application/json",
+          data: JSON.stringify({
+            first_name: first_name.val(),
+            last_name: last_name.val(),
+            email: email.val(),
+            phone: phone.val(),
+            birth_date: $.datepicker.formatDate('yy-mm-dd', new Date(birthdate.val()))
+          })
+        });      
+    }
+
     function userAdded(xhr, status) {
-      console.log(xhr)
       var customer = xhr.responseJSON;
       if (status == "success") {
         $( "#customers tbody" ).append( 
-          "<tr customer-id=\"" + customer.id + "\">" +
+          "<tr>" +
             "<td>" + customer.first_name + "</td>" +
             "<td>" + customer.last_name + "</td>" +
             "<td>" + customer.email + "</td>" +
             "<td>" + customer.phone + "</td>" +
             "<td>" + $.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date)) + "</td>" +
+            "<td customer-id=\"" + customer.id + "\">" +
+              "<button class=\"pure-button editer\" customer-id=\"" + customer.id + "\">Edit</button>" + 
+            "</td>" +
           "</tr>" 
         );
+        $( ".editer" ).last().on("click", showEditDialog)
       }
     }
  
-    function addUser() {
+    function handleUser() {
       var valid = true;
       allFields.removeClass( "ui-state-error" );
  
@@ -73,21 +142,11 @@ $(function() {
       valid = valid && (birthdate.val()=='' || checkRegexp( birthdate, /^([0-9\/])+$/, "Birthdate in format mm/dd/yyyy" ));
  
       if ( valid ) {
-        $.ajax({
-          url: "/customers",
-          type: "POST",
-          method: "POST",
-          complete: userAdded,
-          dataType: "json",
-          contentType: "application/json",
-          data: JSON.stringify({
-            first_name: first_name.val(),
-            last_name: last_name.val(),
-            email: email.val(),
-            phone: phone.val(),
-            birth_date: $.datepicker.formatDate('yy-mm-dd', new Date(birthdate.val()))
-          })
-        });
+        if (customer_new) {
+          addUser();
+        } else {
+          updateUser();
+        }
 
         dialog.dialog( "close" );
       }
@@ -100,7 +159,7 @@ $(function() {
       width: 350,
       modal: true,
       buttons: {
-        'Add': addUser,
+        'Save': handleUser,
         Cancel: function() {
           dialog.dialog( "close" );
         }
@@ -112,12 +171,18 @@ $(function() {
     });
  
     $( "#new_customer" ).button().on( "click", function() {
+      form[ 0 ].reset();
+      customer_new = true;
+      form_title.html("A New Customer")
       dialog.dialog( "open" );
-      $("#birthdate").datepicker({changeYear: true, yearRange: "-100:+0"});
     });
+
+    $("#birthdate").datepicker({changeYear: true, yearRange: "-100:+0"});
 
     form = dialog.find( "form" ).on( "submit", function( event ) {
       event.preventDefault();
       addUser();
     });
+
+    $( ".editer" ).on("click", showEditDialog)
 })
