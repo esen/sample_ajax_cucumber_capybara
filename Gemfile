@@ -48,3 +48,12 @@ group :development, :test do
   gem 'rspec'
 end
 
+group :test do
+  gem 'capybara'
+  gem 'cucumber-rails', :require => false
+  # database_cleaner is not required, but highly recommended
+  gem 'database_cleaner'
+  gem 'cucumber-websteps'
+  gem 'selenium-webdriver'
+end
+
