@@ -3,7 +3,8 @@ $(function() {
 
     emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
     customer_new = true,
-    editting_id = null,
+    deleting = null,
+    editting = null,
     form_title = $("#form_title"),
     first_name = $( "#first_name" ),
     last_name = $( "#last_name" ),
@@ -43,9 +44,27 @@ $(function() {
       }
     }
 
+    function deleteUser(obj) {
+      deleting = $(this)
+      $.ajax({
+          url: "/customers/" + deleting.attr("customer-id"),
+          type: "GET",
+          method: "DELETE",
+          complete: userDeleted,
+          dataType: "json",
+          contentType: "application/json"
+      });   
+    }
+
+    function userDeleted(xhr, status) {
+      if (status == "nocontent") {
+        deleting.parent().parent().remove();
+      }
+    }
+
     function updateUser() {
         $.ajax({
-          url: "/customers/" + editting_id,
+          url: "/customers/" + editting.attr("customer-id"),
           type: "POST",
           method: "PUT",
           complete: userUpdated,
@@ -64,26 +83,36 @@ $(function() {
     function showEditDialog(event) {
       var customer = $(this).parent().parent().children();
       customer_new = false;
-      editting_id = $(this).attr("customer-id")
+      editting = $(this);
       form_title.html("Edit Customer")
       dialog.dialog( "open" );
+
+      var bd = $.datepicker.formatDate('mm/dd/yy', new Date(customer.eq(4).html()));
+      if (customer.eq(4).html() == "") {
+        bd = "";
+      }
 
       first_name.val(customer.eq(0).html());
       last_name.val(customer.eq(1).html());
       email.val(customer.eq(2).html());
       phone.val(customer.eq(3).html());
-      birthdate.val($.datepicker.formatDate('mm/dd/yy', new Date(customer.eq(4).html())));
+      birthdate.val(bd);
     }
 
     function userUpdated(xhr, status) {
       var customer = xhr.responseJSON;
+      var bd = $.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date))
+      if (customer.birth_date == null) {
+        bd = "";
+      }
+
       if (status == "success") {
         var editted_row = $("#customers button[customer-id='" + customer.id + "']").parent().parent().children( )
         editted_row.eq(0).html(customer.first_name)
         editted_row.eq(1).html(customer.last_name)
         editted_row.eq(2).html(customer.email)
         editted_row.eq(3).html(customer.phone)
-        editted_row.eq(4).html($.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date)))
+        editted_row.eq(4).html(bd)
       }
     }
 
@@ -108,6 +137,10 @@ $(function() {
 
     function userAdded(xhr, status) {
       var customer = xhr.responseJSON;
+      var bd = $.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date))
+      if (customer.birth_date == null) {
+        bd = "";
+      }
       if (status == "success") {
         $( "#customers tbody" ).append( 
           "<tr>" +
@@ -115,13 +148,15 @@ $(function() {
             "<td>" + customer.last_name + "</td>" +
             "<td>" + customer.email + "</td>" +
             "<td>" + customer.phone + "</td>" +
-            "<td>" + $.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date)) + "</td>" +
+            "<td>" + bd + "</td>" +
             "<td customer-id=\"" + customer.id + "\">" +
-              "<button class=\"pure-button editer\" customer-id=\"" + customer.id + "\">Edit</button>" + 
+              "<button class=\"pure-button editer\" customer-id=\"" + customer.id + "\">Edit</button>\n" + 
+              "<button class=\"pure-button deleter\" customer-id=\"" + customer.id + "\">Delete</button>" + 
             "</td>" +
           "</tr>" 
         );
         $( ".editer" ).last().on("click", showEditDialog)
+        $( ".deleter" ).last().on("click", deleteUser)
       }
     }
  
@@ -185,4 +220,6 @@ $(function() {
     });
 
     $( ".editer" ).on("click", showEditDialog)
+    $( ".deleter" ).on("click", deleteUser)
+
 })
