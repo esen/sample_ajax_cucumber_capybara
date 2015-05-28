@@ -2,7 +2,7 @@
 
 <h1>Listing Customers</h1>
 
-<table class="pure-table pure-table-bordered">
+<table class="pure-table pure-table-bordered" id="customers">
   <thead>
     <tr>
       <th>First name</th>
@@ -15,12 +15,12 @@
 
   <tbody>
     <% @customers.each do |customer| %>
-      <tr>
+      <tr customer-id="<%= customer.id %>">
         <td><%= customer.first_name %></td>
         <td><%= customer.last_name %></td>
         <td><%= customer.email %></td>
         <td><%= customer.phone %></td>
-        <td><%= customer.birth_date %></td>
+        <td><%= customer.birth_date.strftime("%Y-%m-%d") if customer.birth_date %></td>
       </tr>
     <% end %>
   </tbody>

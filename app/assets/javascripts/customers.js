@@ -39,6 +39,22 @@ $(function() {
         return true;
       }
     }
+
+    function userAdded(xhr, status) {
+      console.log(xhr)
+      var customer = xhr.responseJSON;
+      if (status == "success") {
+        $( "#customers tbody" ).append( 
+          "<tr customer-id=\"" + customer.id + "\">" +
+            "<td>" + customer.first_name + "</td>" +
+            "<td>" + customer.last_name + "</td>" +
+            "<td>" + customer.email + "</td>" +
+            "<td>" + customer.phone + "</td>" +
+            "<td>" + $.datepicker.formatDate('yy-mm-dd', new Date(customer.birth_date)) + "</td>" +
+          "</tr>" 
+        );
+      }
+    }
  
     function addUser() {
       var valid = true;
@@ -57,7 +73,22 @@ $(function() {
       valid = valid && (birthdate.val()=='' || checkRegexp( birthdate, /^([0-9\/])+$/, "Birthdate in format mm/dd/yyyy" ));
  
       if ( valid ) {
-        console.log("adding..")
+        $.ajax({
+          url: "/customers",
+          type: "POST",
+          method: "POST",
+          complete: userAdded,
+          dataType: "json",
+          contentType: "application/json",
+          data: JSON.stringify({
+            first_name: first_name.val(),
+            last_name: last_name.val(),
+            email: email.val(),
+            phone: phone.val(),
+            birth_date: $.datepicker.formatDate('yy-mm-dd', new Date(birthdate.val()))
+          })
+        });
+
         dialog.dialog( "close" );
       }
       return valid;
@@ -82,7 +113,7 @@ $(function() {
  
     $( "#new_customer" ).button().on( "click", function() {
       dialog.dialog( "open" );
-      $("#birthdate").datepicker();
+      $("#birthdate").datepicker({changeYear: true, yearRange: "-100:+0"});
     });
 
     form = dialog.find( "form" ).on( "submit", function( event ) {
